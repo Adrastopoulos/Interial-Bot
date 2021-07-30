@@ -1,0 +1,17 @@
+{
+  "name": "InterialBot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^13.0.0-dev.2675b08.1627646567",
+    "dotenv": "^10.0.0",
+    "nodemon": "^2.0.12"
+  }
+}
