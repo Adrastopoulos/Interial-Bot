@@ -4,6 +4,7 @@ module.exports = {
     commandOptions: null, 
     global: true, 
     async run(interaction) {
+
         let serverCount = 0, memberCount = 0, description = ''
 
         client.guilds.cache.forEach((guild) => {
@@ -17,8 +18,9 @@ module.exports = {
         client.api.interactions(interaction.id, interaction.token).callback.post({data: {
             type: 4,
             data: {
-              embeds: [ embed ]
-            }
+              embeds: [ embed ],
+              flags: '64' //ephemeral
+            },
         }})
     }
 }
