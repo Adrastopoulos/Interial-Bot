@@ -39,6 +39,18 @@ client.on('interactionCreate', async interaction => {
         const author = interaction.member
         const guild = author.guild
         const options = interaction.options
+        const permissible = client.permissible(author, guild, command)
+        if(permissible.length) {
+            const embed = util.embedify(
+                'RED', 
+                author.user.username, 
+                author.user.displayAvatarURL(), 
+                permissible
+            )
+
+            interaction.reply({ embeds: [ embed ], ephemeral: true})
+            return
+        }
         command?.run(interaction, guild, author, options).catch(err => {
             const embed = util.embedify(
                 'RED',
@@ -59,3 +71,39 @@ client.on('interactionCreate', async interaction => {
 })
 
 client.login(process.env.TOKEN)
+
+client.permissible = (author, guild, command) => {
+    let missingPermissions = [], missingRoles = [], permissible = ''
+    if(command?.permissions) {
+        for(const permission of command.permissions) {
+            if(!author.permissions.has(permission)) {
+                missingPermissions.push(`\`${permission}\``)     
+            }
+        }
+    }
+
+    if(command?.roles) {
+        for(const role of command.roles) {
+            const guildRole = guild.roles.cache.find(r => {
+                return r.name.toLowerCase() === role.name.toLowerCase()
+            })
+
+            if(!guildRole) {
+                permissible += `Please create a(n) \`${role.name}\` role. Case insensitive.\n`
+            } else if(role.required && !author.roles.cache.has(guildRole.id)) {
+                missingRoles.push(`<@&${guildRole.id}>`)
+            }
+        }
+    }
+    
+    if(command?.ownerOnly && process.env.OWNER_ID !== author.user.id)
+        permissible += 'You must be an \`OWNER\` to run this command.\n'
+
+    if(missingPermissions.length) 
+        permissible += `You are missing the ${missingPermissions.join(', ')} permission(s) to run this command.\n`
+
+    if(missingRoles.length)
+        permissible += `You are missing the ${missingRoles.join(', ')} role(s) to run this command.\n`
+
+    return permissible
+}

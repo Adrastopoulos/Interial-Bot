@@ -3,6 +3,9 @@ const Discord = require("discord.js")
 module.exports = {
     name: 'send', 
     description: 'Send a message in a specified channel.',
+    permissions: [
+        'ADMINISTRATOR'
+    ],
     options: [
         {
             name: 'embed',
