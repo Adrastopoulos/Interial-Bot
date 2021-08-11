@@ -1,7 +1,7 @@
 module.exports = {
     name: 'servers',
     description: `Get information about ${client.user.tag}'s servers`,
-    commandOptions: null, 
+    options: null, 
     global: true, 
     async run(interaction) {
 
@@ -15,12 +15,6 @@ module.exports = {
 
         const embed = util.embedify('GREEN', 'Server List', client.user.displayAvatarURL(), description)
 
-        client.api.interactions(interaction.id, interaction.token).callback.post({data: {
-            type: 4,
-            data: {
-              embeds: [ embed ],
-              flags: '64' //ephemeral
-            },
-        }})
+        await interaction.reply({ embeds:[embed], ephemeral: true})
     }
 }
