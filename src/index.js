@@ -48,6 +48,12 @@ client.on('interactionCreate', async interaction => {
                 You've encountered an error.
                 Report this to Adrastopoulos#2753 in [Interial](https://discord.gg/fR7M6pPAUg)`
             )
+
+            if(interaction.replied) {
+                interaction.followUp({ embeds: [ embed ], ephemeral: true })
+            } else {
+                interaction.reply({ embeds: [ embed ], ephemeral: true })
+            }
         })
     }
 })
