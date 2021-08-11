@@ -1,4 +1,5 @@
 require('dotenv').config()
+
 const Discord = require('discord.js')
 const fs = require('fs')
 const util = require('./util/util')
@@ -26,29 +27,29 @@ client.on('ready', async () => {
     const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'))
     for(const commandFile of commandFiles) {
         const command = require(`./commands/${commandFile}`)
-        client.api.applications(process.env.APPLICATIONID).guilds(process.env.GUILDID).commands.post({data: {
-            name: command.name,
-            description: command.description,
-            options: command.options
-        }})
-
+        await client.guilds.cache.get(process.env.GUILD_ID).commands.create(command)
         client.commands.set(command.name, command)
         console.log(`${command.name} command registered`)
     }
 })
 
-client.ws.on('INTERACTION_CREATE', async interaction => {
-    try {
-        client.commands.get(interaction.data.name).run(interaction)
-    } catch (err) {
-        console.error(err)
-        client.api.interactions(interaction.id, interation.token).callback.post({ data: {
-            type: 4, 
-            data: {
-                content: 'Error'
-            }
-        }})
-    }   
+client.on('interactionCreate', async interaction => {
+    if(interaction.isCommand()) {
+        const command = client.commands.get(interaction.commandName)
+        const author = interaction.member
+        const guild = author.guild
+        const options = interaction.options
+        command?.run(interaction, guild, author, options).catch(err => {
+            const embed = util.embedify(
+                'RED',
+                author.user.username, 
+                author.user.displayAvatarURL(),
+                `**Command**: \`${command.name}\`\n\`\`\`js\n${err}\`\`\`
+                You've encountered an error.
+                Report this to Adrastopoulos#2753 in [Interial](https://discord.gg/fR7M6pPAUg)`
+            )
+        })
+    }
 })
 
 client.login(process.env.TOKEN)
