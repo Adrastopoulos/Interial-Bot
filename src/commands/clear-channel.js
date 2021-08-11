@@ -3,41 +3,35 @@ module.exports = {
     description: 'Deletes a number of messages in a channel. If not specified, deletes all messages <= 2 weeks old.',
     options: [
         {
+            name: 'channel',
+            description: 'The channel to delete messages in.',
+            type: 'CHANNEL',
+            required: true
+        }, {
             name: 'msgcount',
             description: 'The count of messages to delete, between 0 and 100.',
-            type: 4, //integer
-            required: false, 
+            type: 'INTEGER'
         }
     ],
     global: true, 
-    async run(interaction) {
-        let content = null, embed = null
-        
-        const guild = await client.guilds.fetch(interaction.guild_id)
-        const member = await guild.members.fetch(interaction.member.user.id)
+    async run(interaction, guild, author, options) {
+        const channel = options._hoistedOptions[0].channel
 
-        let msgCount = interaction.data.options?.[0].value ?? 100
-        if (msgCount && msgCount > 100 || msgCount < 0) {
-            embed = util.embedify('RED', member.user.username, member.user.displayAvatarURL(), `Invalid Length: \`${msgCount}\` out of bounds.`)
+        let embed
+        if(!channel.isText()) {
+            embed = util.embedify('RED', author.user.username, author.user.displayAvatarURL(), `<#${channel.id}> is not a text channel.`)
         } else {
-            const channel = await client.channels.fetch(interaction.channel_id)
-    
-            await channel.bulkDelete(msgCount)
-                .then((val) => {
-                    embed = util.embedify('GREEN', member.user.username, member.user.displayAvatarURL(), `Deleted \`${val.size}\` messages.`) 
-                })
-                .catch((err) => {
-                    embed = util.embedify('RED', member.user.username, member.user.displayAvatarURL(), `\`\`\`js\n${err}\`\`\``)
-                })
+            msgCount = options._hoistedOptions[1]?.value ?? 100
+            if (msgCount && msgCount > 100 || msgCount < 0) {
+                embed = util.embedify('RED', author.user.username, author.user.displayAvatarURL(), `Invalid Length: \`${msgCount}\` out of bounds.`)
+            } else {
+                await channel.bulkDelete(msgCount)
+                    .then((val) => {
+                        embed = util.embedify('GREEN', author.user.username, author.user.displayAvatarURL(), `Deleted \`${val.size}\` messages.`) 
+                    })
+            }
         }
 
-        await client.api.interactions(interaction.id, interaction.token).callback.post({data: {
-            type: 4,
-            data: {
-              content,
-              embeds: [ embed ],
-              flags: '64' //ephemeral
-            },
-        }})
+        await interaction.reply({ embeds: [embed], ephemeral: true })
     }
 }
